@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  teachus:
+    build: .
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeachUs</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Auth Views ── -->
+  <div id="view-login" class="auth-container hidden">
+    <div class="auth-card">
+      <h2>TeachUs</h2>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Benutzername</label>
+          <input type="text" id="login-username" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label>Passwort</label>
+          <input type="password" id="login-password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Anmelden</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="view-register" class="auth-container hidden">
+    <div class="auth-card">
+      <h2>Registrieren</h2>
+      <form id="register-form">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="reg-name" required>
+        </div>
+        <div class="form-group">
+          <label>Benutzername</label>
+          <input type="text" id="reg-username" required>
+        </div>
+        <div class="form-group">
+          <label>Passwort</label>
+          <input type="password" id="reg-password" required>
+        </div>
+        <div class="form-group" id="reg-stimme-group">
+          <label>Stimme</label>
+          <select id="reg-stimme">
+            <option value="">Stimme wählen…</option>
+            <option>Sopran</option>
+            <option>Mezzo</option>
+            <option>Alt</option>
+            <option>Tenor</option>
+            <option>Bass</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Registrieren</button>
+      </form>
+      <p class="text-muted mt-2" style="text-align:center">
+        <a href="#" id="goto-login">Zur Anmeldung</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── App Shell ── -->
+  <div id="view-app" class="hidden" style="display:flex;flex-direction:column;min-height:100vh">
+    <header>
+      <button id="back-btn" class="hidden" title="Zurück">&#8592;</button>
+      <h1 id="page-title">TeachUs</h1>
+      <button id="admin-btn" class="hidden" title="Verwaltung">&#9881;</button>
+      <button id="logout-btn" title="Abmelden">&#x2715;</button>
+    </header>
+    <main id="main-content"></main>
+  </div>
+
+</div>
+
+<!-- ── Toast Container ── -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── Modal Container ── -->
+<div id="modal-container"></div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/toast.js"></script>
+<script src="/static/js/modal.js"></script>
+<script src="/static/js/player.js"></script>
+<script src="/static/js/repertoire.js"></script>
+<script src="/static/js/stueck.js"></script>
+<script src="/static/js/admin.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
