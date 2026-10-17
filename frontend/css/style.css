@@ -542,6 +542,175 @@ input:focus, select:focus, textarea:focus {
   transition: width 0.3s;
 }
 
+
+/* ─── Chorleiter-Navigation ─── */
+#main-nav {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--primary-dark);
+  padding: 0.35rem 0.75rem;
+  overflow-x: auto;
+  position: sticky;
+  top: 3.7rem;
+  z-index: 99;
+}
+#main-nav button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 99px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#main-nav button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+#main-nav button.active { background: #fff; color: var(--primary-dark); }
+
+main.wide { max-width: none; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Stimmgruppen-Farben ─── */
+.grp-sopran   { --grp: #fbe3e6; --grp-head: #f2b8c0; }
+.grp-mezzo    { --grp: #fdebdd; --grp-head: #f7c9a6; }
+.grp-alt      { --grp: #fff5d6; --grp-head: #f5de8e; }
+.grp-tenor    { --grp: #e3f1de; --grp-head: #b5d8a7; }
+.grp-bass     { --grp: #ddebf7; --grp-head: #a8cbea; }
+.grp-sonstige { --grp: #eeeeee; --grp-head: #cccccc; }
+
+/* ─── Stimmmatrix ─── */
+.matrix-wrap {
+  overflow: auto;
+  max-height: calc(100vh - 11rem);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.matrix { border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+.matrix th, .matrix td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.3rem 0.4rem;
+  text-align: center;
+}
+.matrix thead th { position: sticky; background: var(--grp-head, var(--card)); z-index: 2; }
+.matrix thead th { top: 0; }
+.matrix .mx-name { vertical-align: bottom; height: 7.5rem; min-width: 2.3rem; }
+.matrix .mx-name span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  max-height: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.matrix .mx-sticky {
+  position: sticky;
+  left: 0;
+  background: var(--card);
+  z-index: 1;
+  text-align: left;
+  border-right: 2px solid var(--border);
+}
+.matrix thead .mx-sticky { z-index: 3; }
+.matrix .mx-titel {
+  font-weight: 500;
+  font-style: italic;
+  max-width: 14rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.matrix .grp-start { border-left: 2px solid #888; }
+.mx-cell { background: var(--grp); cursor: pointer; min-width: 2.3rem; }
+.mx-cell:hover { outline: 2px solid var(--primary); outline-offset: -2px; }
+.mx-cell.is-standard { color: #888; }
+.mx-cell.is-custom { font-weight: 700; color: var(--text); }
+.mx-select { padding: 0.2rem; font-size: 0.8rem; width: auto; min-width: 7rem; }
+.legend-custom { font-weight: 700; color: var(--text); }
+
+/* Besetzung pro Auftritt: Namen anklicken = anwesend/abwesend */
+.besetzung { margin-bottom: 0.5rem; max-height: none; }
+.matrix .mx-toggle { cursor: pointer; user-select: none; }
+.matrix .mx-toggle:hover { outline: 2px solid var(--primary); outline-offset: -2px; }
+.matrix .mx-toggle.anwesend { box-shadow: inset 0 -4px 0 var(--success); }
+.matrix .mx-toggle.anwesend span::before { content: "✓ "; color: var(--success); font-weight: 700; }
+.matrix .mx-toggle.abwesend { background: #e4e4e4; color: #999; }
+.matrix .mx-toggle.abwesend span { text-decoration: line-through; }
+.mx-cell.abwesend { background: #f1f1f1; color: #bbb; font-weight: 400; }
+.besetzung .mx-cell { cursor: default; }
+.besetzung .mx-cell:hover { outline: none; }
+
+/* ─── Setlist ─── */
+.setlist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow);
+}
+.setlist-row.dragging { opacity: 0.5; outline: 2px dashed var(--primary); }
+.drag-handle { cursor: grab; color: var(--text-muted); user-select: none; letter-spacing: -2px; }
+.setlist-nr { font-weight: 700; color: var(--primary); min-width: 1.5rem; text-align: right; }
+.setlist-main { flex: 1; min-width: 0; }
+.setlist-titel { font-weight: 600; font-style: italic; margin-bottom: 0.35rem; }
+.setlist-fields { display: flex; gap: 0.4rem; }
+.setlist-fields input { padding: 0.35rem 0.55rem; font-size: 0.875rem; }
+.setlist-fields .sl-begleitung { flex: 1; min-width: 0; }
+.setlist-fields .sl-dauer { width: 5rem; flex-shrink: 0; text-align: right; }
+.setlist-actions { display: flex; flex-direction: column; }
+.setlist-actions .btn-icon { font-size: 0.75rem; padding: 0.15rem 0.35rem; }
+.setlist-actions .btn-icon:disabled { opacity: 0.3; cursor: default; }
+.setlist-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f0f2ff;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius);
+  margin-top: 0.25rem;
+}
+.setlist-extras {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  padding: 0.25rem 1rem 0.5rem;
+}
+.setlist-extras div { display: flex; justify-content: space-between; padding: 0.1rem 0; }
+.setlist-total strong { font-size: 1.15rem; color: var(--primary-dark); }
+
+@media (max-width: 480px) {
+  .setlist-fields { flex-direction: column; }
+  .setlist-fields .sl-dauer { width: 100%; text-align: left; }
+}
+
+/* ─── Benutzerverwaltung ─── */
+.rolle-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 99px;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.rolle-superadmin { background: #1a1a2e; color: #fff; }
+.rolle-admin { background: var(--primary); color: #fff; }
+.rolle-chorleiter { background: #fff3cd; color: #8a6d00; }
+
 @media (max-width: 480px) {
   main { padding: 0.75rem; }
   .player-card { padding: 1rem; }

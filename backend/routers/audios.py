@@ -28,8 +28,8 @@ def _stimme_matches(user_stimme: str, audio_stimme: str) -> bool:
 
 
 def _auto_favorites_for_audio(db: Session, audio: models.Audio):
-    """Create audio_favoriten entries for all matching users."""
-    users = db.query(models.User).filter(models.User.rolle == "mitglied").all()
+    """Create audio_favoriten entries for all matching singers."""
+    users = db.query(models.User).filter(models.User.rolle.in_(auth_utils.SAENGER_ROLLEN)).all()
     for user in users:
         # Check stück-spezifischen Eintrag
         stueck_stimme = db.query(models.UserStueckStimme).filter(

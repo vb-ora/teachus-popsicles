@@ -14,7 +14,7 @@ function createPlayer(audio, currentUser, onMarkierungSaved, onKapitelSaved) {
   }
 
   function render() {
-    const canManage = currentUser.rolle === 'admin' || currentUser.rolle === 'chorleiter';
+    const canManage = Rollen.canManage(currentUser);
     const bezeichnung = audio.bezeichnung ? ` – ${audio.bezeichnung}` : '';
 
     const markierungenHTML = audio.markierungen?.length

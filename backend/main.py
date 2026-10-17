@@ -8,11 +8,21 @@ import aiofiles
 from fastapi import HTTPException
 from starlette.responses import StreamingResponse
 
+from sqlalchemy import inspect, text
+
 from database import engine, Base
 import models
-from routers import auth, users, stuecke, audios, markierungen, kapitel, favoriten
-from auth import hash_password
+from routers import (
+    auth, stuecke, audios, markierungen, kapitel, favoriten,
+    stimmmatrix, auftritte, setlists, superadmin,
+)
+import logging
+
+from auth import hash_password, ROLLE_SUPERADMIN, SAENGER_ROLLEN
 from database import SessionLocal
+from stimmen import USER_STIMMEN
+
+log = logging.getLogger("teachus")
 
 app = FastAPI(title="TeachUs", docs_url="/api/docs")
 
@@ -25,19 +35,63 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(users.router)
 app.include_router(stuecke.router)
 app.include_router(audios.router)
 app.include_router(markierungen.router)
 app.include_router(kapitel.router)
 app.include_router(favoriten.router)
+app.include_router(stimmmatrix.router)
+app.include_router(auftritte.router)
+app.include_router(setlists.router)
+app.include_router(superadmin.router)
 
 
 @app.on_event("startup")
 def startup():
     os.makedirs("/data/uploads", exist_ok=True)
+    neu_auftritt_saenger = not inspect(engine).has_table("auftritt_saenger")
     Base.metadata.create_all(bind=engine)
+    _spalten_ergaenzen()
     _create_admin_if_missing()
+    _create_superadmin_if_missing()
+    if neu_auftritt_saenger:
+        _bestehende_auftritte_besetzen()
+
+
+# Spalten, die nach dem ersten Anlegen einer Tabelle dazugekommen sind.
+# create_all() legt nur fehlende Tabellen an, daher hier per ALTER TABLE nachziehen.
+NACHTRAEGLICHE_SPALTEN = {
+    "auftritte": {
+        "dauer_aufabgang": "INTEGER",
+        "dauer_moderation": "INTEGER",
+        "dauer_applaus_tonangabe": "INTEGER",
+    },
+}
+
+
+def _spalten_ergaenzen():
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for tabelle, spalten in NACHTRAEGLICHE_SPALTEN.items():
+            vorhanden = {c["name"] for c in insp.get_columns(tabelle)}
+            for name, typ in spalten.items():
+                if name not in vorhanden:
+                    conn.execute(text(f"ALTER TABLE {tabelle} ADD COLUMN {name} {typ}"))
+                    log.warning(f"Spalte {tabelle}.{name} ergänzt")
+
+
+def _bestehende_auftritte_besetzen():
+    """Einmalig, wenn auftritt_saenger neu angelegt wurde: bestehende Auftritte
+    bekommen – wie neu angelegte – alle aktuellen Sänger als anwesend."""
+    db = SessionLocal()
+    try:
+        saenger = db.query(models.User).filter(models.User.rolle.in_(SAENGER_ROLLEN)).all()
+        for a in db.query(models.Auftritt).all():
+            for u in saenger:
+                db.add(models.AuftrittSaenger(auftritt_id=a.id, user_id=u.id))
+        db.commit()
+    finally:
+        db.close()
 
 
 def _create_admin_if_missing():
@@ -56,6 +110,46 @@ def _create_admin_if_missing():
             )
             db.add(admin)
             db.commit()
+    finally:
+        db.close()
+
+
+def _create_superadmin_if_missing():
+    username = os.getenv("SUPERADMIN_USERNAME", "").strip()
+    password = os.getenv("SUPERADMIN_PASSWORD", "")
+    stimme = os.getenv("SUPERADMIN_STIMME", "").strip()
+    if not username:
+        log.warning("SUPERADMIN_USERNAME nicht gesetzt – kein Superadmin angelegt")
+        return
+
+    db = SessionLocal()
+    try:
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if user:
+            # Bestehender Account mit diesem Namen wird zum Superadmin befördert
+            if user.rolle != ROLLE_SUPERADMIN:
+                log.warning(f"User '{username}' wird zum Superadmin (vorher: {user.rolle})")
+                user.rolle = ROLLE_SUPERADMIN
+            if not user.stimme and stimme in USER_STIMMEN:
+                user.stimme = stimme
+            db.commit()
+            return
+
+        if not password or stimme not in USER_STIMMEN:
+            log.error(
+                "Superadmin nicht angelegt: SUPERADMIN_PASSWORD fehlt oder "
+                f"SUPERADMIN_STIMME ungültig (erlaubt: {', '.join(USER_STIMMEN)})"
+            )
+            return
+        db.add(models.User(
+            name=username,
+            username=username,
+            password_hash=hash_password(password),
+            rolle=ROLLE_SUPERADMIN,
+            stimme=stimme,
+        ))
+        db.commit()
+        log.warning(f"Superadmin '{username}' angelegt")
     finally:
         db.close()
 

@@ -64,13 +64,29 @@ def get_current_user(
     return user
 
 
+# Rollen (von oben nach unten): superadmin > admin > chorleiter / mitglied
+ROLLE_SUPERADMIN = "superadmin"
+ADMIN_ROLLEN = ("superadmin", "admin")
+VERWALTUNGS_ROLLEN = ("superadmin", "admin", "chorleiter")
+# Rollen, die singen und in der Stimmmatrix als Sänger geführt werden
+SAENGER_ROLLEN = ("superadmin", "admin", "mitglied")
+# Rollen, die vergeben werden dürfen – superadmin nie
+VERGEBBARE_ROLLEN = ("mitglied", "chorleiter", "admin")
+
+
+def require_superadmin(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if current_user.rolle != ROLLE_SUPERADMIN:
+        raise HTTPException(status_code=403, detail="Nur für Superadmin")
+    return current_user
+
+
 def require_admin(current_user: models.User = Depends(get_current_user)) -> models.User:
-    if current_user.rolle != "admin":
+    if current_user.rolle not in ADMIN_ROLLEN:
         raise HTTPException(status_code=403, detail="Nur Admins erlaubt")
     return current_user
 
 
 def require_admin_or_chorleiter(current_user: models.User = Depends(get_current_user)) -> models.User:
-    if current_user.rolle not in ("admin", "chorleiter"):
+    if current_user.rolle not in VERWALTUNGS_ROLLEN:
         raise HTTPException(status_code=403, detail="Nur Admins und Chorleiter erlaubt")
     return current_user

@@ -40,16 +40,15 @@ const App = (() => {
     hideAll();
     document.getElementById('view-app').classList.remove('hidden');
 
-    const adminBtn = document.getElementById('admin-btn');
-    if (currentUser.rolle === 'admin') {
-      adminBtn.classList.remove('hidden');
-      adminBtn.onclick = () => {
-        currentPage = 'admin';
-        renderAdmin(currentUser);
-      };
-    } else {
-      adminBtn.classList.add('hidden');
-    }
+    // Chorleiter-Menü (Stimmmatrix, Auftritte) für Chorleiter, Admin und Superadmin;
+    // Benutzerverwaltung nur für Superadmin
+    const nav = document.getElementById('main-nav');
+    nav.classList.toggle('hidden', !Rollen.canManage(currentUser));
+    nav.querySelector('[data-page="benutzer"]')
+      .classList.toggle('hidden', !Rollen.isSuperadmin(currentUser));
+    nav.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => navigate(btn.dataset.page);
+    });
 
     document.getElementById('logout-btn').onclick = async () => {
       await API.logout();
@@ -58,17 +57,32 @@ const App = (() => {
     };
 
     document.getElementById('back-btn').onclick = () => {
-      if (currentPage === 'stueck') {
-        currentPage = 'repertoire';
-        renderRepertoire(currentUser);
-      } else if (currentPage === 'admin') {
-        currentPage = 'repertoire';
-        renderRepertoire(currentUser);
-      }
+      if (currentPage === 'auftritt') navigate('auftritte');
+      else navigate('repertoire');
     };
 
-    currentPage = 'repertoire';
-    renderRepertoire(currentUser);
+    navigate('repertoire');
+  }
+
+  function navigate(page, arg) {
+    currentPage = page;
+    // Matrix-Ansichten brauchen die volle Breite
+    document.getElementById('main-content').classList.toggle('wide', page === 'stimmmatrix');
+    document.querySelectorAll('#main-nav button').forEach(btn => {
+      const section = page === 'stueck' ? 'repertoire' : page === 'auftritt' ? 'auftritte' : page;
+      btn.classList.toggle('active', btn.dataset.page === section);
+    });
+
+    switch (page) {
+      case 'benutzer': return renderBenutzerverwaltung(currentUser);
+      case 'stueck': return renderStueck(arg, currentUser);
+      case 'stimmmatrix': return renderStimmmatrix(currentUser);
+      case 'auftritte': return renderAuftritte(currentUser);
+      case 'auftritt': return renderAuftritt(arg, currentUser);
+      default:
+        currentPage = 'repertoire';
+        return renderRepertoire(currentUser);
+    }
   }
 
   function hideAll() {
@@ -128,9 +142,12 @@ const App = (() => {
 
   // Global navigation
   window.goToStueck = function (id) {
-    currentPage = 'stueck';
     currentStueckId = id;
-    renderStueck(id, currentUser);
+    navigate('stueck', id);
+  };
+
+  window.goToAuftritt = function (id) {
+    navigate('auftritt', id);
   };
 
   document.addEventListener('DOMContentLoaded', init);

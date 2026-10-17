@@ -4,7 +4,7 @@ async function renderRepertoire(currentUser) {
   document.getElementById('page-title').textContent = 'Repertoire';
   document.getElementById('back-btn').classList.add('hidden');
 
-  const canManage = currentUser.rolle === 'admin' || currentUser.rolle === 'chorleiter';
+  const canManage = Rollen.canManage(currentUser);
 
   main.innerHTML = `
     <div class="search-row">

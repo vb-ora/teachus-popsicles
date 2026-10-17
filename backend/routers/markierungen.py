@@ -65,7 +65,7 @@ def delete_markierung(
     if not m:
         raise HTTPException(status_code=404, detail="Markierung nicht gefunden")
 
-    if m.user_id != current_user.id and current_user.rolle not in ("admin", "chorleiter"):
+    if m.user_id != current_user.id and current_user.rolle not in auth_utils.VERWALTUNGS_ROLLEN:
         raise HTTPException(status_code=403, detail="Keine Berechtigung")
 
     db.delete(m)

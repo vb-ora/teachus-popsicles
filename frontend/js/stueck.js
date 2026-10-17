@@ -19,7 +19,7 @@ async function renderStueck(stueckId, currentUser) {
 
   document.getElementById('page-title').textContent = stueck.titel;
 
-  const canManage = currentUser.rolle === 'admin' || currentUser.rolle === 'chorleiter';
+  const canManage = Rollen.canManage(currentUser);
 
   // Build stimme dropdown options
   const stimmenOpts = (stueck.verfuegbare_stimmen || [])
@@ -37,7 +37,7 @@ async function renderStueck(stueckId, currentUser) {
       </div>
       ${stueck.notizen ? `<div style="font-size:.85rem;color:var(--text-muted)">${escHtml(stueck.notizen)}</div>` : ''}
 
-      ${currentUser.rolle === 'mitglied' ? `
+      ${Rollen.isSaenger(currentUser) ? `
         <div style="margin-top:.75rem">
           ${!stueck.meine_stimme ? '<div class="stimme-hint">⚠ Wähle deine Stimme für dieses Stück</div>' : ''}
           <div style="display:flex;align-items:center;gap:.5rem">

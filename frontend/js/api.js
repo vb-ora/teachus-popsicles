@@ -1,3 +1,12 @@
+// Rollen: superadmin > admin > chorleiter / mitglied
+const Rollen = {
+  isSuperadmin: (u) => u?.rolle === 'superadmin',
+  // Darf Repertoire, Stimmmatrix und Auftritte verwalten
+  canManage: (u) => ['superadmin', 'admin', 'chorleiter'].includes(u?.rolle),
+  // Singt im Chor (Chorleiter nicht)
+  isSaenger: (u) => ['superadmin', 'admin', 'mitglied'].includes(u?.rolle),
+};
+
 // Thin API wrapper
 const API = (() => {
   let _token = localStorage.getItem('token') || null;
@@ -44,6 +53,28 @@ const API = (() => {
     put: (path, body) => request('PUT', path, body),
     delete: (path) => request('DELETE', path),
     postForm: (path, formData) => request('POST', path, formData, true),
+
+    // Datei (z.B. PDF) mit Auth-Header laden und als Download anbieten
+    async download(path, fallbackName) {
+      const headers = {};
+      if (_token) headers['Authorization'] = `Bearer ${_token}`;
+      const res = await fetch(`/api${path}`, { headers });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Fehler ${res.status}`);
+      }
+      const cd = res.headers.get('Content-Disposition') || '';
+      const m = cd.match(/filename\*=UTF-8''([^;]+)/);
+      const name = m ? decodeURIComponent(m[1]) : fallbackName;
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    },
 
     // Auth
     async login(username, password) {

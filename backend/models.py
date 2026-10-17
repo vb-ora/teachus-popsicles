@@ -1,9 +1,9 @@
 from datetime import datetime
 from sqlalchemy import (
-    Column, Integer, String, Float, Boolean, DateTime,
+    Column, Integer, String, Float, Boolean, Date, DateTime,
     ForeignKey, Text, UniqueConstraint
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from database import Base
 
 
@@ -14,7 +14,7 @@ class User(Base):
     name = Column(String, nullable=False)
     username = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    rolle = Column(String, nullable=False)  # admin / chorleiter / mitglied
+    rolle = Column(String, nullable=False)  # superadmin / admin / chorleiter / mitglied
     stimme = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -124,3 +124,60 @@ class UserStueckStimme(Base):
 
     user = relationship("User", back_populates="stueck_stimmen")
     stueck = relationship("Stueck", back_populates="stimmen")
+
+
+class Auftritt(Base):
+    __tablename__ = "auftritte"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    datum = Column(Date, nullable=False)
+    uhrzeit_einsingen = Column(String, nullable=True)  # "HH:MM"
+    uhrzeit_konzert = Column(String, nullable=True)    # "HH:MM"
+    notizen = Column(Text, nullable=True)
+    # Zusatzzeiten in Sekunden (zählen zur Gesamtdauer)
+    dauer_aufabgang = Column(Integer, nullable=True)
+    dauer_moderation = Column(Integer, nullable=True)
+    dauer_applaus_tonangabe = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    eintraege = relationship(
+        "SetlistEintrag",
+        back_populates="auftritt",
+        cascade="all, delete-orphan",
+        order_by="SetlistEintrag.reihenfolge",
+    )
+    saenger = relationship("AuftrittSaenger", back_populates="auftritt", cascade="all, delete-orphan")
+
+
+class SetlistEintrag(Base):
+    __tablename__ = "setlist_eintraege"
+
+    id = Column(Integer, primary_key=True)
+    auftritt_id = Column(Integer, ForeignKey("auftritte.id"), nullable=False)
+    stueck_id = Column(Integer, ForeignKey("stuecke.id"), nullable=False)
+    reihenfolge = Column(Integer, nullable=False, default=0)
+    begleitung = Column(Text, nullable=True)
+    dauer_sekunden = Column(Integer, nullable=True)
+    notizen = Column(Text, nullable=True)
+
+    auftritt = relationship("Auftritt", back_populates="eintraege")
+    # backref statt Änderung an Stueck: beim Löschen eines Stücks werden
+    # seine Setlist-Einträge mit entfernt.
+    stueck = relationship(
+        "Stueck",
+        backref=backref("setlist_eintraege", cascade="all, delete-orphan"),
+    )
+
+
+class AuftrittSaenger(Base):
+    """Sänger, die bei einem Auftritt anwesend sind (fehlender Eintrag = abwesend)."""
+    __tablename__ = "auftritt_saenger"
+    __table_args__ = (UniqueConstraint("auftritt_id", "user_id"),)
+
+    id = Column(Integer, primary_key=True)
+    auftritt_id = Column(Integer, ForeignKey("auftritte.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    auftritt = relationship("Auftritt", back_populates="saenger")

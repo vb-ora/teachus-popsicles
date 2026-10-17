@@ -70,9 +70,14 @@
       <button id="back-btn" class="hidden" title="Zurück">&#8592;</button>
       <img src="/static/img/logo.png" alt="Logo" id="header-logo">
       <h1 id="page-title">TeachUs</h1>
-      <button id="admin-btn" class="hidden" title="Verwaltung">&#9881;</button>
       <button id="logout-btn" title="Abmelden">&#x2715;</button>
     </header>
+    <nav id="main-nav" class="hidden">
+      <button data-page="repertoire">Repertoire</button>
+      <button data-page="stimmmatrix">Stimmmatrix</button>
+      <button data-page="auftritte">Auftritte</button>
+      <button data-page="benutzer" class="hidden">Benutzerverwaltung</button>
+    </nav>
     <main id="main-content"></main>
   </div>
 
@@ -90,7 +95,9 @@
 <script src="/static/js/player.js"></script>
 <script src="/static/js/repertoire.js"></script>
 <script src="/static/js/stueck.js"></script>
-<script src="/static/js/admin.js"></script>
+<script src="/static/js/benutzerverwaltung.js"></script>
+<script src="/static/js/stimmmatrix.js"></script>
+<script src="/static/js/auftritte.js"></script>
 <script src="/static/js/app.js"></script>
 </body>
 </html>

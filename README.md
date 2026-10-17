@@ -13,7 +13,10 @@ TeachUs ist eine Web-App für Chöre zum Verwalten und Anhören von Übungsaufna
 - **Kapitel** — strukturierte Sprungmarken, übertragbar auf mehrere Audios
 - **Favoriten** — Stücke und Audios als Favorit markieren
 - **ZIP-Download** — alle Audios eines Stücks mit korrekten ID3-Tags als ZIP herunterladen
-- **Rollensystem** — Mitglied · Chorleiter · Admin
+- **Stimmmatrix** — Übersicht, wer in welchem Stück welche Stimme singt; direkt editierbar, als PDF exportierbar (Chorleiter/Admin)
+- **Auftritte & Setlists** — Auftritte anlegen, Stücke per Drag & Drop sortieren, Begleitung und Dauer pflegen, Gesamtdauer automatisch (Chorleiter/Admin)
+- **Setlist-PDF** — Setlist-Matrix mit Stimmen je Sänger, farbig nach Stimmgruppe (Chorleiter/Admin)
+- **Rollensystem** — Mitglied · Chorleiter · Admin · Superadmin (exklusive Benutzerverwaltung)
 - **Einladungslink** — geschlossene Registrierung per Invite-Code
 
 ---
@@ -46,7 +49,12 @@ SECRET_KEY=<langer-zufälliger-string>
 INVITE_CODE=<einladungscode-für-neue-mitglieder>
 ADMIN_USERNAME=<benutzername-des-ersten-admins>
 ADMIN_PASSWORD=<passwort-des-ersten-admins>
+SUPERADMIN_USERNAME=<benutzername-des-superadmins>
+SUPERADMIN_PASSWORD=<passwort-des-superadmins>
+SUPERADMIN_STIMME=<z.B. Tenor>
 ```
+
+Der Superadmin wird beim Start angelegt, falls es den Benutzernamen noch nicht gibt. Existiert der Account bereits, wird er zum Superadmin befördert (Passwort bleibt unverändert). Erlaubte Stimmen: Sopran, Sopran 1/2, Mezzo, Mezzo 1/2, Alt, Alt 1/2, Tenor, Tenor 1/2, Bass, Bass 1/2, Männer.
 
 ### 3. App starten
 
